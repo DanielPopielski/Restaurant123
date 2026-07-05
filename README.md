@@ -4,6 +4,18 @@ REST API for restaurant management: users (JWT), menu, tables and orders,
 plus real-time kitchen notifications (Kafka + WebSocket/STOMP).
 Stack: Java 17, Spring Boot 3.3, Spring Security 6, PostgreSQL, JPA/Hibernate, Apache Kafka.
 
+## Quick start (Windows)
+
+With Docker Desktop and Node.js installed, run everything with one command:
+
+```powershell
+.\start.ps1
+```
+
+This starts PostgreSQL and Kafka via `docker compose`, launches the backend and the
+frontend in separate windows and opens the app in your browser. Stop the containers
+with `.\stop.ps1`.
+
 ## Requirements
 
 - Java 17+

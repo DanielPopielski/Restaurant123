@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    container_name: restaurant-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: restaurant
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: restaurant-kafka
+    ports:
+      - "9092:9092"
+
+volumes:
+  pgdata:
