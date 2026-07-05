@@ -1,39 +1,39 @@
 # Restaurant API
 
-REST API do zarządzania restauracją: użytkownicy (JWT), menu, stoliki i zamówienia,
-plus powiadomienia kuchni w czasie rzeczywistym (Kafka + WebSocket/STOMP).
+REST API for restaurant management: users (JWT), menu, tables and orders,
+plus real-time kitchen notifications (Kafka + WebSocket/STOMP).
 Stack: Java 17, Spring Boot 3.3, Spring Security 6, PostgreSQL, JPA/Hibernate, Apache Kafka.
 
-## Wymagania
+## Requirements
 
 - Java 17+
-- PostgreSQL (najprościej przez Dockera):
+- PostgreSQL (easiest via Docker):
 
 ```bash
 docker run -d --name restaurant-db -p 5432:5432 \
   -e POSTGRES_DB=restaurant -e POSTGRES_PASSWORD=postgres postgres:16
 ```
 
-Kafka (powiadomienia dla kuchni):
+Kafka (kitchen notifications):
 
 ```bash
 docker run -d --name restaurant-kafka -p 9092:9092 apache/kafka:3.8.0
 ```
 
-## Uruchomienie
+## Running the app
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Konfiguracja przez zmienne środowiskowe (opcjonalnie): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`.
+Configuration via environment variables (optional): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`.
 
-**Uwaga:** przed wdrożeniem produkcyjnym ustaw własny `JWT_SECRET` (base64):
+**Note:** before deploying to production, set your own `JWT_SECRET` (base64):
 `openssl rand -base64 64`
 
 ## Frontend (React + Vite)
 
-W folderze `frontend/`. Wymaga Node.js 18+ (https://nodejs.org).
+Located in the `frontend/` folder. Requires Node.js 18+ (https://nodejs.org).
 
 ```bash
 cd frontend
@@ -41,70 +41,71 @@ npm install
 npm run dev
 ```
 
-Aplikacja: **http://localhost:5173** (żądania `/api` i `/ws` są proxowane do backendu na :8080).
-Funkcje: logowanie/rejestracja, menu z koszykiem, moje zamówienia, panel admina
-(dania, stoliki, statusy zamówień) i ekran kuchni na żywo (WebSocket).
+App: **http://localhost:5173** (`/api` and `/ws` requests are proxied to the backend on :8080).
+Features: login/registration, menu with a cart, order history, admin panel
+(dishes, tables, order statuses) and a live kitchen screen (WebSocket).
 
-## Dokumentacja API
+## API documentation
 
-Po uruchomieniu: http://localhost:8080/swagger-ui.html
+Once running: http://localhost:8080/swagger-ui.html
 
-## Endpointy
+## Endpoints
 
-| Metoda | Ścieżka | Dostęp | Opis |
+| Method | Path | Access | Description |
 |---|---|---|---|
-| POST | /api/v1/auth/register | publiczny | rejestracja (zwraca token) |
-| POST | /api/v1/auth/authenticate | publiczny | logowanie (zwraca token) |
-| GET | /api/v1/dishes | zalogowany | lista dań |
-| POST/PUT/DELETE | /api/v1/dishes | ADMIN | zarządzanie daniami |
-| GET | /api/v1/tables | zalogowany | lista stolików |
-| POST/PUT/DELETE | /api/v1/tables | ADMIN | zarządzanie stolikami |
-| POST | /api/v1/orders | zalogowany | złożenie zamówienia |
-| GET | /api/v1/orders/my | zalogowany | moje zamówienia |
-| GET | /api/v1/orders | ADMIN | wszystkie zamówienia |
-| PATCH | /api/v1/orders/{id}/status | ADMIN | zmiana statusu |
+| POST | /api/v1/auth/register | public | registration (returns a token) |
+| POST | /api/v1/auth/authenticate | public | login (returns a token) |
+| GET | /api/v1/dishes | authenticated | list dishes |
+| POST/PUT/DELETE | /api/v1/dishes | ADMIN | manage dishes |
+| GET | /api/v1/tables | authenticated | list tables |
+| POST/PUT/DELETE | /api/v1/tables | ADMIN | manage tables |
+| POST | /api/v1/orders | authenticated | place an order |
+| GET | /api/v1/orders/my | authenticated | my orders |
+| GET | /api/v1/orders | ADMIN | all orders |
+| PATCH | /api/v1/orders/{id}/status | ADMIN | update order status |
 
-## Przykłady (curl)
+## Examples (curl)
 
 ```bash
-# Rejestracja
+# Registration
 curl -X POST localhost:8080/api/v1/auth/register \
   -H 'Content-Type: application/json' \
   -d '{"username":"daniel","password":"password123"}'
 
-# Logowanie
+# Login
 TOKEN=$(curl -s -X POST localhost:8080/api/v1/auth/authenticate \
   -H 'Content-Type: application/json' \
   -d '{"username":"daniel","password":"password123"}' | jq -r .token)
 
-# Lista dań
+# List dishes
 curl localhost:8080/api/v1/dishes -H "Authorization: Bearer $TOKEN"
 
-# Złożenie zamówienia
+# Place an order
 curl -X POST localhost:8080/api/v1/orders \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"tableId":1,"items":[{"dishId":1,"quantity":2}]}'
 ```
 
-## Nadanie roli ADMIN
+## Granting the ADMIN role
 
-Pierwszego admina ustaw ręcznie w bazie:
+Set up the first admin manually in the database:
 
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE username = 'daniel';
 ```
 
-## Ekran kuchni (Kafka + WebSocket)
+## Kitchen screen (Kafka + WebSocket)
 
-Po złożeniu zamówienia (`POST /api/v1/orders`) aplikacja publikuje zdarzenie na topic Kafki
-`kitchen-orders`. Konsument odbiera je i wypycha przez WebSocket (STOMP) na `/topic/kitchen`.
+After an order is placed (`POST /api/v1/orders`), the application publishes an event
+to the `kitchen-orders` Kafka topic. A consumer picks it up and pushes it over
+WebSocket (STOMP) to `/topic/kitchen`.
 
-Podgląd na żywo: otwórz **http://localhost:8080/kitchen.html**, złóż zamówienie przez API —
-powiadomienie pojawi się natychmiast, bez odświeżania.
+Live preview: open **http://localhost:8080/kitchen.html**, place an order through the
+API — the notification appears instantly, no refresh needed.
 
-Jeśli Kafka nie działa, aplikacja wystartuje normalnie (REST działa), a powiadomienia będą
-logowane jako błąd producenta.
+If Kafka is down, the application still starts normally (REST keeps working) and
+notifications are logged as producer errors.
 
-## Statusy zamówień
+## Order statuses
 
-`NEW → IN_PROGRESS → READY → DELIVERED` (lub `CANCELLED`)
+`NEW → IN_PROGRESS → READY → DELIVERED` (or `CANCELLED`)
