@@ -49,6 +49,10 @@ Features: login/registration, menu with a cart, order history, admin panel
 
 Once running: http://localhost:8080/swagger-ui.html
 
+To call protected endpoints from Swagger UI: authenticate via
+`POST /api/v1/auth/authenticate`, copy the token from the response,
+click the **Authorize** button and paste it (without the `Bearer` prefix).
+
 ## Endpoints
 
 | Method | Path | Access | Description |
