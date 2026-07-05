@@ -9,7 +9,7 @@ export default function Kitchen() {
   const [tables, setTables] = useState({})
   const [toast, setToast] = useState(null)
 
-  // przy wejsciu: zaladuj aktywne zamowienia (NEW / IN_PROGRESS) z API
+  // on mount: load active orders (NEW / IN_PROGRESS) from the API
   useEffect(() => {
     api.getTables()
       .then((list) => setTables(Object.fromEntries(list.map((t) => [t.id, t.tableNumber]))))
@@ -30,7 +30,7 @@ export default function Kitchen() {
       .catch(() => setToast({ type: 'error', message: 'Nie udało się pobrać zamówień' }))
   }, [])
 
-  // na zywo: nowe zamowienia przez WebSocket (Kafka -> STOMP)
+  // live: new orders over WebSocket (Kafka -> STOMP)
   useEffect(() => {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const client = new Client({

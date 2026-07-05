@@ -34,7 +34,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    /** Zwraca username albo null, gdy token jest niepoprawny/wygasly. */
+    /** Returns the username, or null if the token is invalid or expired. */
     public String extractUsername(String token) {
         try {
             return parseClaims(token).getSubject();

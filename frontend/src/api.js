@@ -19,7 +19,7 @@ async function request(path, options = {}) {
   try {
     body = await res.json()
   } catch {
-    /* pusta odpowiedz */
+    /* empty response body */
   }
 
   if (!res.ok) {

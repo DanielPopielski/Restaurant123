@@ -19,7 +19,7 @@ public class OrderNotificationProducer {
                         String.valueOf(notification.orderId()), notification)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("Nie udalo sie wyslac powiadomienia o zamowieniu {}: {}",
+                        log.error("Failed to publish notification for order {}: {}",
                                 notification.orderId(), ex.getMessage());
                     }
                 });

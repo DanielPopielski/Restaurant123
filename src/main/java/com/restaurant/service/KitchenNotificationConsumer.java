@@ -20,7 +20,7 @@ public class KitchenNotificationConsumer {
     @KafkaListener(topics = KafkaConfig.KITCHEN_ORDERS_TOPIC,
                    groupId = "${spring.kafka.consumer.group-id}")
     public void onOrderCreated(OrderNotification notification) {
-        log.info("Nowe zamowienie {} -> ekran kuchni", notification.orderId());
+        log.info("Order {} forwarded to the kitchen screen", notification.orderId());
         messagingTemplate.convertAndSend(KITCHEN_WEBSOCKET_DESTINATION, notification);
     }
 }

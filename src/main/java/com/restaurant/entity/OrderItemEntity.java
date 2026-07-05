@@ -29,7 +29,7 @@ public class OrderItemEntity {
     @Column(nullable = false)
     private int quantity;
 
-    /** Cena jednostkowa w momencie zamowienia (ceny dan moga sie zmieniac). */
+    /** Unit price at the time of ordering (dish prices may change later). */
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 }
