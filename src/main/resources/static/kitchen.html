@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Kuchnia - zamowienia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<style>
+  body { font-family: sans-serif; background: #1e1e1e; color: #eee; margin: 20px; }
+  h1 { font-size: 1.4em; }
+  #status { color: #f80; }
+  #status.connected { color: #0c0; }
+  .order { background: #2b2b2b; border-left: 5px solid #0a0; padding: 12px 16px;
+           margin: 10px 0; border-radius: 6px; animation: flash 1s; }
+  .order h2 { margin: 0 0 6px; font-size: 1.1em; }
+  .order ul { margin: 4px 0 0 18px; }
+  .time { color: #999; font-size: 0.85em; }
+  @keyframes flash { from { background: #054d05; } to { background: #2b2b2b; } }
+</style>
+</head>
+<body>
+<h1>Ekran kuchni <span id="status">(laczenie...)</span></h1>
+<div id="orders"></div>
+<script>
+  const statusEl = document.getElementById('status');
+  const ordersEl = document.getElementById('orders');
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const client = Stomp.client(proto + '://' + location.host + '/ws');
+  client.debug = null;
+  client.connect({}, () => {
+    statusEl.textContent = '(polaczono)';
+    statusEl.classList.add('connected');
+    client.subscribe('/topic/kitchen', msg => {
+      const order = JSON.parse(msg.body);
+      const div = document.createElement('div');
+      div.className = 'order';
+      div.innerHTML = '<h2>Zamowienie #' + order.orderId + ' &mdash; stolik ' + order.tableNumber + '</h2>'
+        + '<ul>' + order.items.map(i => '<li>' + i.quantity + ' x ' + i.dishName + '</li>').join('') + '</ul>'
+        + '<div class="time">' + new Date(order.createdAt).toLocaleTimeString() + '</div>';
+      ordersEl.prepend(div);
+    });
+  }, () => { statusEl.textContent = '(blad polaczenia - odswiez strone)'; });
+</script>
+</body>
+</html>
